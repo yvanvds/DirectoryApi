@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -9,37 +10,84 @@ namespace DirectoryApi
 {
     public class Account
     {
-        internal DirectoryEntry dEntry;
-
         public Account(DirectoryEntry entry)
         {
-            dEntry = entry;
+            uid = entry.Properties.Contains("sAMAccountName") ? entry.Properties["sAMAccountName"].Value.ToString() : "";
+            firstName = entry.Properties.Contains("givenName") ? entry.Properties["givenName"].Value.ToString() : "";
+            lastName = entry.Properties.Contains("sn") ? entry.Properties["sn"].Value.ToString() : "";
+            fullName = entry.Properties.Contains("displayname") ? entry.Properties["displayname"].Value.ToString() : ""; 
+            mailAlias = entry.Properties.Contains("smamailalias") ? entry.Properties["smamailalias"].Value.ToString() : "";
+            wisaID = entry.Properties.Contains("smaWisaID") ? entry.Properties["smaWisaID"].Value.ToString() : "";
+            wisaName = entry.Properties.Contains("smawisaname") ? entry.Properties["smawisaname"].Value.ToString() : "";
+            classGroup = entry.Properties.Contains("smaClass") ? entry.Properties["smaClass"].Value.ToString() : "";
+            state = (int)entry.Properties["userAccountControl"].Value;
         }
 
+        public Account(JObject obj)
+        {
+            uid = obj.ContainsKey("uid") ? obj["uid"].ToString() : "";
+            firstName = obj.ContainsKey("firstName") ? obj["firstName"].ToString() : "";
+            lastName = obj.ContainsKey("lastName") ? obj["lastName"].ToString() : "";
+            fullName = obj.ContainsKey("fullName") ? obj["fullName"].ToString() : "";
+            mailAlias = obj.ContainsKey("mailAlias") ? obj["mailAlias"].ToString() : "";
+            wisaID = obj.ContainsKey("wisaID") ? obj["wisaID"].ToString() : "";
+            wisaName = obj.ContainsKey("wisaName") ? obj["wisaName"].ToString() : "";
+            classGroup = obj.ContainsKey("classGroup") ? obj["classGroup"].ToString() : "";
+            state = obj.ContainsKey("state") ? Convert.ToInt32(obj["state"]) : 0; 
+        }
+
+        public JObject ToJson()
+        {
+            var result = new JObject();
+            result["uid"] = uid;
+            result["firstName"] = firstName;
+            result["lastName"] = lastName;
+            result["fullName"] = fullName;
+            result["mailAlais"] = mailAlias;
+            result["wisaID"] = wisaID;
+            result["wisaName"] = wisaName;
+            result["classGroup"] = classGroup;
+            result["state"] = state;
+            return result;
+        } 
+
+        private string uid;
+        public string UID { get => uid; }
+
+        private string firstName;
+        public string FirstName { get => firstName; }
+
+        private string lastName;
+        public string LastName { get => lastName; }
+
+        private string fullName;
+        public string FullName { get => fullName; }
+
+        private string mailAlias;
+        public string MailAlias { get => mailAlias; }
+
+        private string wisaID;
+        public string WisaID { get => wisaID; }
+
+        private string wisaName;
+        public string WisaName { get => wisaName; }
+
+        private string classGroup;
+        public string ClassGroup { get => classGroup; }
+
+        int state;
         internal int State
         {
-            get
-            {
-                return (int)dEntry.Properties["userAccountControl"].Value;
-            }
+            get => state;
 
             set
             {
-                dEntry.Properties["userAccountControl"].Value = value;
-                dEntry.CommitChanges();
+                var entry = GetEntry(uid);
+                entry.Properties["userAccountControl"].Value = value;
+                entry.CommitChanges();
+                entry.Close();
             }
         }
-
-
-
-        public string UID { get => dEntry.Properties.Contains("sAMAccountName") ? dEntry.Properties["sAMAccountName"].Value.ToString() : ""; }
-        public string FirstName { get => dEntry.Properties.Contains("givenName") ? dEntry.Properties["givenName"].Value.ToString() : ""; }
-        public string LastName { get => dEntry.Properties.Contains("sn") ? dEntry.Properties["sn"].Value.ToString() : ""; }
-        public string FullName { get => dEntry.Properties.Contains("displayname") ? dEntry.Properties["displayname"].Value.ToString() : ""; }
-        public string MailAlias { get => dEntry.Properties.Contains("smamailalias") ? dEntry.Properties["smamailalias"].Value.ToString() : ""; }
-        public string WisaID { get => dEntry.Properties.Contains("smaWisaID") ? dEntry.Properties["smaWisaID"].Value.ToString() : ""; }
-        public string WisaName { get => dEntry.Properties.Contains("smawisaname") ? dEntry.Properties["smawisaname"].Value.ToString() : ""; }
-        public string ClassGroup { get => dEntry.Properties.Contains("smaClass") ? dEntry.Properties["smaClass"].Value.ToString() : ""; }
 
         public void Disable()
         {
@@ -60,11 +108,17 @@ namespace DirectoryApi
 
         public void Delete()
         {
-            var parent = dEntry.Parent;
-            parent.Children.Remove(dEntry);
+            var entry = GetEntry(uid);
+            var parent = entry.Parent;
+            parent.Children.Remove(entry);
             parent.CommitChanges();
-            dEntry.Close();
+            entry.Close();
             parent.Close();
+        }
+
+        private static DirectoryEntry GetEntry(string uid)
+        {
+            return null;
         }
     }
 }

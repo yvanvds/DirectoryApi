@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AbstractAccountApi;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -11,7 +12,6 @@ namespace DirectoryApi
     {
         private static Dictionary<string, DirectoryEntry> all = null;
         public static Dictionary<string, DirectoryEntry> All { get => all; }
-
 
         public static bool ReloadGroups()
         {
@@ -32,12 +32,12 @@ namespace DirectoryApi
             }
             catch (DirectoryServicesCOMException e)
             {
-                Connector.Log.Add(e.Message, true);
+                Connector.Log.AddError(Origin.Directory, e.Message);
                 return false;
             }
             catch (System.Runtime.InteropServices.COMException e)
             {
-                Connector.Log.Add(e.Message, true);
+                Connector.Log.AddError(Origin.Directory, e.Message);
                 return false;
             }
 

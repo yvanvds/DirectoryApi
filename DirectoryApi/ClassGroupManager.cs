@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractAccountApi;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -65,7 +67,7 @@ namespace DirectoryApi
             }
             catch (DirectoryServicesCOMException e)
             {
-                Connector.Log.Add(e.Message, true);
+                Connector.Log.AddError(Origin.Directory, e.Message);
                 return false;
             }
 
@@ -96,6 +98,30 @@ namespace DirectoryApi
                 if (result != null) return result;
             }
             return null;
+        }
+
+        public static JObject ToJson()
+        {
+            JObject result = new JObject();
+
+            var groups = new JArray();
+            foreach(var group in all)
+            {
+                groups.Add(group.ToJson());
+            }
+            result["Groups"] = groups;
+            return result;
+        }
+
+        public static void FromJson(JObject obj)
+        {
+            All.Clear();
+
+            var groups = obj["Groups"].ToArray();
+            foreach(var group in groups)
+            {
+                All.Add(new ClassGroup(group as JObject));
+            }
         }
     }
 }

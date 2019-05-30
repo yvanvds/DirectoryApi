@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractAccountApi;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -49,7 +51,7 @@ namespace DirectoryApi
                 }
                 catch (DirectoryServicesCOMException e)
                 {
-                    Connector.Log.Add(e.Message, true);
+                    Connector.Log.AddError(Origin.Directory, e.Message);
                     return false;
                 }
 
@@ -64,7 +66,7 @@ namespace DirectoryApi
                     count++;
                 }
 
-                Connector.Log.Add("Added " + count.ToString() + " Student Accounts", false);
+                Connector.Log.AddMessage(Origin.Directory, "Added " + count.ToString() + " Student Accounts");
                 return true;
             });
 
@@ -87,7 +89,7 @@ namespace DirectoryApi
                 }
                 catch (DirectoryServicesCOMException e)
                 {
-                    Connector.Log.Add(e.Message, true);
+                    Connector.Log.AddError(Origin.Directory, e.Message);
                     return false;
                 }
 
@@ -102,11 +104,50 @@ namespace DirectoryApi
                     count++;
                 }
 
-                Connector.Log.Add("Added " + count.ToString() + " Staff Accounts", false);
+                Connector.Log.AddMessage(Origin.Directory, "Added " + count.ToString() + " Staff Accounts");
                 return true;
             });
 
             return result;
+        }
+
+        public static JObject ToJson()
+        {
+            JObject result = new JObject();
+
+            var students = new JArray();
+            foreach (var account in Students)
+            {
+                students.Add(account.ToJson());
+            }
+            result["Students"] = students;
+
+            var staff = new JArray();
+            foreach(var account in Staff)
+            {
+                staff.Add(account.ToJson());
+            }
+            result["Staff"] = staff;
+
+            return result;
+        }
+
+        public static void FromJson(JObject obj)
+        {
+            Students.Clear();
+            Staff.Clear();
+
+            var students = obj["Students"].ToArray();
+            foreach(var student in students)
+            {
+                Students.Add(new Account(student as JObject));
+            }
+
+            var staff = obj["Staff"].ToArray();
+            foreach(var account in staff)
+            {
+                Staff.Add(new Account(account as JObject));
+            }
         }
 
         public static bool Exists(string username)
@@ -159,7 +200,7 @@ namespace DirectoryApi
                 string path = Connector.GetPath(role, classgroup);
                 if (path == null)
                 {
-                    Connector.Log.Add("unable to add account for " + firstname + " " + lastname, true);
+                    Connector.Log.AddError(Origin.Directory, "unable to add account for " + firstname + " " + lastname);
                     return null;
                 }
                 Connector.CreateOUIfneeded(path);
@@ -167,7 +208,7 @@ namespace DirectoryApi
                 DirectoryEntry ouEntry = Connector.GetEntry(path);
                 if (ouEntry == null)
                 {
-                    Connector.Log.Add("Account creation went wrong. (cannot get path: " + path + ")", true);
+                    Connector.Log.AddError(Origin.Directory, "Account creation went wrong. (cannot get path: " + path + ")");
                     return null;
                 }
 
@@ -186,7 +227,7 @@ namespace DirectoryApi
                 }
                 catch (DirectoryServicesCOMException e)
                 {
-                    Connector.Log.Add("unable to add account for " + firstname + " " + lastname + ": " + e.Message, true);
+                    Connector.Log.AddError(Origin.Directory, "unable to add account for " + firstname + " " + lastname + ": " + e.Message);
                     return null;
                 }
 
@@ -209,7 +250,7 @@ namespace DirectoryApi
                 }
                 catch (DirectoryServicesCOMException e)
                 {
-                    Connector.Log.Add("unable to add account for " + firstname + " " + lastname + ": " + e.Message, true);
+                    Connector.Log.AddError(Origin.Directory, "unable to add account for " + firstname + " " + lastname + ": " + e.Message);
                     return null;
                 }
 

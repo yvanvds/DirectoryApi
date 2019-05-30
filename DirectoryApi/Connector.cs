@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AbstractAccountApi;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -59,12 +60,12 @@ namespace DirectoryApi
             }
             catch (DirectoryServicesCOMException e)
             {
-                Log.Add(e.Message, true);
+                Log.AddError(Origin.Directory, e.Message);
                 return false;
             }
             catch (Exception e)
             {
-                Log.Add(e.Message, true);
+                Log.AddError(Origin.Directory, e.Message);
                 return false;
             }
 
@@ -181,7 +182,7 @@ namespace DirectoryApi
                         DirectoryEntry child = ouEntry.Children.Add(ou[i], "OrganizationalUnit");
                         child.CommitChanges();
                         ouEntry.CommitChanges();
-                        Log.Add("Created Unit: " + ou[i], false);
+                        Log.AddMessage(Origin.Directory, "Created Unit: " + ou[i]);
                     }
                 }
 
