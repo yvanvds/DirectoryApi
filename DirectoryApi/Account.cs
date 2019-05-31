@@ -20,7 +20,7 @@ namespace DirectoryApi
             wisaID = entry.Properties.Contains("smaWisaID") ? entry.Properties["smaWisaID"].Value.ToString() : "";
             wisaName = entry.Properties.Contains("smawisaname") ? entry.Properties["smawisaname"].Value.ToString() : "";
             classGroup = entry.Properties.Contains("smaClass") ? entry.Properties["smaClass"].Value.ToString() : "";
-            state = (int)entry.Properties["userAccountControl"].Value;
+            state = entry.Properties.Contains("userAccountControl") ?  (int)entry.Properties["userAccountControl"].Value : 0;
         }
 
         public Account(JObject obj)

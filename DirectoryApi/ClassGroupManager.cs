@@ -48,7 +48,6 @@ namespace DirectoryApi
                 all.Clear();
                 return LoadGroups(Connector.StudentPath, all);
             });
-
         }
 
         private static bool LoadGroups(string path, List<ClassGroup> list)
@@ -77,6 +76,7 @@ namespace DirectoryApi
                 list.Add(new ClassGroup());
                 list.Last().DN = entry.Path;
                 list.Last().Name = entry.Properties.Contains("ou") ? entry.Properties["ou"].Value.ToString() : "";
+                entry.Close();
             }
 
             foreach (ClassGroup cg in list)
@@ -88,6 +88,11 @@ namespace DirectoryApi
             }
 
             return true;
+        }
+
+        public static void Sort()
+        {
+            all.Sort((a, b) => a.Name.CompareTo(b.Name));
         }
 
         public static ClassGroup Get(string nameOfGroup)
