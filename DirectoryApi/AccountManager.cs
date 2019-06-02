@@ -190,6 +190,15 @@ namespace DirectoryApi
             return true;
         }
 
+        public static bool ContainsStudents(ClassGroup classGroup)
+        {
+            foreach(var student in Students)
+            {
+                if (student.ClassGroup == classGroup.Name) return true;
+            }
+            return false;
+        }
+
         public static async Task<Account> Create(string firstname, string lastname, string WisaID, AccountRole role, string classgroup = "")
         {
             return await Task.Run(() =>
