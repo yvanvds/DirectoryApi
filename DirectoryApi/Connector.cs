@@ -249,9 +249,14 @@ namespace DirectoryApi
 
         public static DirectoryEntry GetEntry(string path)
         {
-            if (DirectoryEntry.Exists(Root + path))
+            if (!path.StartsWith(Root))
             {
-                return new DirectoryEntry(Root + path);
+                path = Root + path;
+            }
+
+            if (DirectoryEntry.Exists(path))
+            {
+                return new DirectoryEntry(path);
             }
             else
             {

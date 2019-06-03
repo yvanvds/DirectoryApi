@@ -95,6 +95,25 @@ namespace DirectoryApi
             all.Sort((a, b) => a.Name.CompareTo(b.Name));
         }
 
+        public static async Task<bool> Delete(ClassGroup group)
+        {
+            return await Task.Run(() =>
+            {
+                ClassGroup parent = GetParent(group);
+                return parent.DeleteChild(group);
+            });
+        }
+
+        public static ClassGroup GetParent(ClassGroup group)
+        {
+            foreach(var item in All)
+            {
+                ClassGroup result = item.GetParentOfGroup(group);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
         public static ClassGroup Get(string nameOfGroup)
         {
             foreach (var group in All)

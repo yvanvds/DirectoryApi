@@ -10,7 +10,7 @@ namespace DirectoryApi
     public class ClassGroup
     {
         public string DN;
-        public string Path;
+        //public string Path;
         public string Name;
         public List<ClassGroup> Children = new List<ClassGroup>();
 
@@ -19,7 +19,7 @@ namespace DirectoryApi
         public ClassGroup(JObject obj)
         {
             DN = obj.ContainsKey("dn") ? obj["dn"].ToString() : "";
-            Path = obj.ContainsKey("path") ? obj["path"].ToString() : "";
+            //Path = obj.ContainsKey("path") ? obj["path"].ToString() : "";
             Name = obj.ContainsKey("name") ? obj["name"].ToString() : "";
             if(obj.ContainsKey("children"))
             {
@@ -35,7 +35,7 @@ namespace DirectoryApi
         {
             var result = new JObject();
             result["dn"] = DN;
-            result["path"] = Path;
+            //result["path"] = Path;
             result["name"] = Name;
             var children = new JArray();
             foreach(var child in Children)
@@ -87,6 +87,38 @@ namespace DirectoryApi
                 if (result != null) return result;
             }
             return null;
+        }
+
+        public ClassGroup GetParentOfGroup(ClassGroup child)
+        {
+            foreach(var group in Children)
+            {
+                if (group == child) return this;
+            }
+
+            foreach(var group in Children)
+            {
+                var parent = group.GetParentOfGroup(child);
+                if (parent != null) return parent;
+            }
+            return null;
+        }
+
+        public bool DeleteChild(ClassGroup child)
+        {
+            bool found = false;
+            foreach(var group in Children)
+            {
+                if (group == child) found = true;
+            }
+            if (!found) return false;
+
+            var parentEntry = Connector.GetEntry(DN);
+            var childEntry = Connector.GetEntry(child.DN);
+
+            parentEntry.Children.Remove(childEntry);
+            Children.Remove(child);
+            return true;
         }
     }
 }
