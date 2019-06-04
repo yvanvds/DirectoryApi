@@ -199,6 +199,15 @@ namespace DirectoryApi
             return false;
         }
 
+        public static Account GetStudentByWisaID(string wisaID)
+        {
+            foreach(var student in Students)
+            {
+                if (student.WisaID == wisaID) return student;
+            }
+            return null;
+        }
+
         public static async Task<Account> Create(string firstname, string lastname, string WisaID, AccountRole role, string classgroup = "")
         {
             return await Task.Run(() =>
